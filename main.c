@@ -48,8 +48,8 @@ static TaskHandle_t lvgl_task_handle;
 
 #define LV_PORT_TASK_DELAY_MS           (1000)
 
-#define EXAMPLE_ESP_WIFI_SSID      "SADELABS"
-#define EXAMPLE_ESP_WIFI_PASS      "Sa20De21*"
+#define EXAMPLE_ESP_WIFI_SSID      ID
+#define EXAMPLE_ESP_WIFI_PASS      PASS
 #define EXAMPLE_ESP_MAXIMUM_RETRY  5
 
 
@@ -261,8 +261,8 @@ void wifi_init_sta(void)
 
     wifi_config_t wifi_config = {
         .sta = {
-            .ssid = "SADELABS",
-            .password = "Sa20De21*",
+            .ssid = ID,
+            .password = PASS,
             /* Authmode threshold resets to WPA2 as default if password matches WPA2 standards (pasword len => 8).
              * If you want to connect the device to deprecated WEP/WPA networks, Please set the threshold value
              * to WIFI_AUTH_WEP/WIFI_AUTH_WPA_PSK and set the password with length and format matching to
