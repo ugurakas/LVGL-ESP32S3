@@ -192,7 +192,7 @@ static void client_post_rest_function()
         
     esp_http_client_handle_t client = esp_http_client_init(&config_post);
 
-    const char  *data = "{\"memberId\": 1987,\"authTokenSelector\": \"Foz2ExTIRtzN\",\"authToken\": \"f83b3808577ce4f1b41ff9f92d1a43b8da967e59fcc515d3fb0dce897e72a10b\",\"clientId\": 387,\"applicationId\": 118}";
+    const char  *data = "{\"memberId\": 191412387,\"authTokenSelector\": \"F53oz2ExT4I3123Rt12zN\",\"authToken\": \"f83b3808577ce4f1b41ff9f93452d1a43b8da967e59fcc515d3fb0dce823497e72a10b\",\"clientId\": 311387,\"applicationId\": 11148}";
     esp_http_client_set_post_field(client, data, strlen(data));
     esp_http_client_set_header(client, "Content-Type", "application/json");
     ESP_LOGI(TAG, "Response");
