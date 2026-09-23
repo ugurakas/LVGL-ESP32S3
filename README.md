@@ -9,10 +9,6 @@ LVGL entegrasyonuna taşır. Arayüz **128×128** çözünürlüktedir.
 ESP32-S3-DevKitC için derleme hedefi:
 `esp32s3_devkitc/esp32s3/procpu`.
 
-Orijinal repo ekran/dokunmatik denetleyicisini veya pinlerini belirtmiyordu;
-README 128×128 derken BSP kodu 480×480 kullanıyordu ve BSP kaynakları yoktu.
-Bu port **128×128 ST7735R SPI ekran için açıkça tanımlanmış bir referans
-bağlantı** sağlar. Bu, mevcut cihazının ST7735R olduğunun tespiti değildir.
 
 | Sinyal | ESP32-S3 GPIO |
 | --- | --- |
@@ -32,9 +28,8 @@ Dokunmatik denetleyici bilinmediğinden fiziksel dokunmatik sürücüsü
 varsayılmamıştır. Yenileme UART üzerinden de çalışır. Zephyr input/LVGL
 pointer desteğiyle kendi dokunmatik aygıtını ekleyebilirsin.
 
-## Mimari ve giderilen eksikler
-
-- LVGL'ye yalnızca ana iş parçacığı erişir; eski eksik mutex bırakma hatası kaldırıldı.
+## Mimari
+- LVGL'ye yalnızca ana iş parçacığı erişir
 - Wi-Fi/DHCP ve yeniden bağlanma ayrı Zephyr work queue üzerinden yürür.
 - HTTPS sorguları ayrı kernel thread içinde periyodik çalışır; tek istekten sonra bitmez.
 - Parçalı HTTP gövdeleri 4096 baytlık sınırlı tamponda biriktirilir. Taşma,
@@ -91,27 +86,10 @@ panel reboot
 panel refresh
 ```
 
-`api_host` yalnızca alan adı/IP içerir; `https://`, port veya yol içermez.
-HTTPS portu 443'tür. API'nin istediği üye/token alanlarını kendi JSON
-gövdene koy. Eski repodaki kimlik bilgileri taşınmaz. Shell JSON'u tek bir
-argüman olarak almalıdır; JSON içindeki çift tırnakları tek tırnakla çevrele.
-Ayarlar yeniden başlatmada uygulanır.
 
 NVS ve yerel shell geliştirme amaçlıdır: flash şifrelenmez; konsol girişi
 ekranda ve shell geçmişinde görülebilir. Gerçek kimlik bilgilerini Git'e ekleme.
 
-
-## Bilgisayarda 128×128 simülasyon
-
-Linux üzerinde SDL2 geliştirme paketleri ve host compiler kurulu olmalı:
-
-```sh
-ZEPHYR_TOOLCHAIN_VARIANT=host west build -b native_sim/native/64 LVGL-ESP32S3 -d build-sim
-west build -d build-sim -t run
-```
-
-Simülatör sahte ağ/sensör verisi üretmez; varsayılan olarak çevrimdışı ekran
-gösterir. Testler örnek yanıtları modele vererek görüntülenen değeri doğrular.
 
 ## Testler
 
@@ -127,4 +105,3 @@ GitHub Actions ESP32-S3 firmware'ini ve simülatörü derler, bu testleri çalı
 Donanım kabul testi: ekran renk/ofsetleri, UART provisioning, NVS'nin reboot
 sonrası korunması, AP kesintisi sonrası bağlantı, gerçek API/TLS sertifikası,
 yanlış CA reddi, büyük/parçalı yanıt ve son ölçümün hata halinde korunması.
-Fiziksel ekran ve gerçek API doğrulanmadan donanım testi geçmiş sayılmaz.
