@@ -1,7 +1,18 @@
-set(UI_DIR ./ui)
-file(GLOB_RECURSE UI_SOURCES ${UI_DIR}/*.c)
-file(GLOB_RECURSE SRC_UI ${CMAKE_SOURCE_DIR} "ui/*.c")
-
-idf_component_register(
-    SRCS "main.c" "lv_port.c" ${UI_SOURCES}
-    INCLUDE_DIRS "." ${UI_DIR})
+cmake_minimum_required(VERSION 3.20.0)
+find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
+project(lvgl_esp32s3)
+target_include_directories(app PRIVATE include ui "${ZEPHYR_BASE}/../modules/lib/cjson")
+target_sources(app PRIVATE src/main.c src/sensor_model.c src/sensor_json.c
+  src/response_buffer.c ui/ui.c "${ZEPHYR_BASE}/../modules/lib/cjson/cJSON.c")
+if(CONFIG_APP_NETWORK)
+  target_sources(app PRIVATE src/config_store.c src/wifi_manager.c src/api_client.c src/provisioning.c)
+  # Only a public CA certificate is embedded. Runtime credentials stay in NVS.
+  if(APP_CA_CERT_FILE)
+    file(READ "${APP_CA_CERT_FILE}" ca_hex HEX)
+    string(REGEX REPLACE "(..)" "0x\\1," ca_bytes "${ca_hex}")
+    file(WRITE "${PROJECT_BINARY_DIR}/api_ca.inc" "${ca_bytes}0x00")
+  else()
+    file(WRITE "${PROJECT_BINARY_DIR}/api_ca.inc" "0x00")
+  endif()
+  target_include_directories(app PRIVATE "${PROJECT_BINARY_DIR}")
+endif()

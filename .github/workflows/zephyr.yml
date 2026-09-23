@@ -1,0 +1,67 @@
+name: Zephyr
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+concurrency:
+  group: zephyr-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [esp32s3, native-tests]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: LVGL-ESP32S3
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Host dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build gperf ccache dfu-util device-tree-compiler wget xz-utils file make gcc g++ libsdl2-dev
+          pip install west
+      - name: Zephyr workspace
+        run: |
+          west init -l LVGL-ESP32S3
+          west update --narrow -o=--depth=1
+          west zephyr-export
+          pip install -r zephyr/scripts/requirements-base.txt
+          west blobs fetch hal_espressif
+      - name: ESP32-S3 toolchain
+        if: matrix.target == 'esp32s3'
+        run: |
+          wget -q https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.17.0/zephyr-sdk-0.17.0_linux-x86_64_minimal.tar.xz
+          tar xf zephyr-sdk-0.17.0_linux-x86_64_minimal.tar.xz
+          cd zephyr-sdk-0.17.0
+          ./setup.sh -t xtensa-espressif_esp32s3_zephyr-elf -c
+      - name: Build ESP32-S3 firmware
+        if: matrix.target == 'esp32s3'
+        run: |
+          west build -b esp32s3_devkitc/esp32s3/procpu LVGL-ESP32S3 -d build
+          grep -q '^CONFIG_WIFI_ESP32=y' build/zephyr/.config
+          grep -q '^CONFIG_NET_SOCKETS_SOCKOPT_TLS=y' build/zephyr/.config
+      - name: Build simulator and execute tests
+        if: matrix.target == 'native-tests'
+        env:
+          ZEPHYR_TOOLCHAIN_VARIANT: host
+          SDL_VIDEODRIVER: dummy
+        run: |
+          west build -b native_sim/native/64 LVGL-ESP32S3 -d build-sim
+          west build -b native_sim/native/64 LVGL-ESP32S3/tests/app -d build-tests
+          timeout 60s west build -d build-tests -t run
+      - uses: actions/upload-artifact@v4
+        if: matrix.target == 'esp32s3'
+        with:
+          name: esp32s3-st7735r-128x128
+          path: |
+            build/zephyr/zephyr.bin
+            build/zephyr/.config
+            build/zephyr/zephyr.dts
