@@ -67,10 +67,6 @@ LVGL tabanlı, modüler UI mimarisine sahip, ESP32-S3 üzerinde ESP-IDF ile çal
 └── idf_component.yml    # ESP-IDF bileşen bağımlılıkları (LVGL vb.)
 ```
 
-## Güvenlik Notu
-
-Bu depo daha önce bir API auth token'ını doğrudan kod içinde barındırıyordu. Bu artık `secrets.h` (commit edilmeyen, gitignore'lu bir dosya) üzerinden yönetiliyor. **Eğer bu repoyu fork'ladıysan veya daha önce klonladıysan, eski commit geçmişinde token hâlâ görünür olabilir** — geçmişi `git filter-repo` veya BFG Repo-Cleaner ile temizlemen ve ilgili API token'ını sunucu tarafında iptal edip yenilemen önerilir.
-
 ## Yol Haritası
 
 - [ ] MQTT desteği (HTTP polling yerine/yanında)
