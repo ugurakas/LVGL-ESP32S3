@@ -71,7 +71,7 @@ west flash -d build
 ```
 
 CA bir özel anahtar değildir. Uygulama özel anahtar/token dosyası istemez.
-CA verilmezse HTTPS `-ENOKEY` ile kapalı kalır; doğrulamasız bağlantıya düşmez.
+CA verilmezse HTTPS `-EACCES` ile kapalı kalır; doğrulamasız bağlantıya düşmez.
 
 115200-baud UART konsolunda gerçek değerlerinle yapılandır:
 

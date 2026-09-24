@@ -146,7 +146,7 @@ int api_client_start(const struct app_config *cfg)
     }
     /* No verification bypass: an absent CA keeps HTTPS disabled. */
     if (sizeof(ca_certificate) <= 1) {
-        return -ENOKEY;
+        return -EACCES;
     }
     int err = tls_credential_add(ca_tag, TLS_CREDENTIAL_CA_CERTIFICATE,
                                  ca_certificate, sizeof(ca_certificate));
