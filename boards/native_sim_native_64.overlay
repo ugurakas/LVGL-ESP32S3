@@ -1,4 +1,4 @@
-&sdl0 {
+&display0 {
     width = <128>;
     height = <128>;
 };
