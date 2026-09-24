@@ -62,7 +62,6 @@ jobs:
           ZEPHYR_TOOLCHAIN_VARIANT: host
           SDL_VIDEODRIVER: dummy
         run: |
-          grep -n -A 10 -B 3 -E 'display|sdl' zephyr/boards/native/native_sim/*.dts*
           west build -b native_sim/native/64 LVGL-ESP32S3 -d build-sim
           west build -b native_sim/native/64 LVGL-ESP32S3/tests/app -d build-tests
           timeout 60s west build -d build-tests -t run
