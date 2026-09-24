@@ -34,7 +34,15 @@ jobs:
           west update --narrow -o=--depth=1
           west zephyr-export
           pip install -r zephyr/scripts/requirements-base.txt
-          west blobs fetch hal_espressif
+
+      - name: ESP32 radio binaries
+        if: matrix.target == 'esp32s3'
+        run: |
+          for attempt in 1 2 3; do
+            if west blobs fetch hal_espressif; then break; fi
+            if [ "$attempt" = 3 ]; then exit 1; fi
+            sleep 5
+          done
       - name: ESP32-S3 toolchain
         if: matrix.target == 'esp32s3'
         run: |
@@ -45,7 +53,7 @@ jobs:
       - name: Build ESP32-S3 firmware
         if: matrix.target == 'esp32s3'
         run: |
-          west build -b esp32s3_devkitc/esp32s3/procpu LVGL-ESP32S3 -d build
+          west build -b esp32s3_devkitc/esp32s3/procpu LVGL-ESP32S3 -d build -- -DAPP_CA_CERT_FILE=/etc/ssl/certs/ISRG_Root_X1.pem
           grep -q '^CONFIG_WIFI_ESP32=y' build/zephyr/.config
           grep -q '^CONFIG_NET_SOCKETS_SOCKOPT_TLS=y' build/zephyr/.config
       - name: Build simulator and execute tests

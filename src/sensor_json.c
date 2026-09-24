@@ -1,5 +1,6 @@
 #include "sensor_json.h"
 #include <errno.h>
+#include <stdbool.h>
 #include <math.h>
 #include <string.h>
 #include <cJSON.h>

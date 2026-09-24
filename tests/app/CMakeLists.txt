@@ -7,3 +7,5 @@ project(panel_tests)
 target_include_directories(app PRIVATE ../../include ../../ui "${ZEPHYR_BASE}/../modules/lib/cjson")
 target_sources(app PRIVATE src/test_app.c ../../src/sensor_json.c ../../src/response_buffer.c
   ../../src/sensor_model.c ../../ui/ui.c "${ZEPHYR_BASE}/../modules/lib/cjson/cJSON.c")
+
+target_compile_definitions(app PRIVATE CJSON_NESTING_LIMIT=16)

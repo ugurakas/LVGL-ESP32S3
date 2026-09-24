@@ -16,3 +16,5 @@ if(CONFIG_APP_NETWORK)
   endif()
   target_include_directories(app PRIVATE "${PROJECT_BINARY_DIR}")
 endif()
+
+target_compile_definitions(app PRIVATE CJSON_NESTING_LIMIT=16)
