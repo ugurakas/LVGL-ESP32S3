@@ -26,7 +26,7 @@ jobs:
       - name: Host dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build gperf ccache dfu-util device-tree-compiler wget xz-utils file make gcc g++ libsdl2-dev
+          sudo apt-get install -y ninja-build gperf ccache dfu-util device-tree-compiler wget xz-utils file make gcc g++ libsdl2-dev xvfb xauth libgl1-mesa-dri
           pip install west
       - name: Zephyr workspace
         run: |
@@ -60,11 +60,10 @@ jobs:
         if: matrix.target == 'native-tests'
         env:
           ZEPHYR_TOOLCHAIN_VARIANT: host
-          SDL_VIDEODRIVER: dummy
         run: |
           west build -b native_sim/native/64 LVGL-ESP32S3 -d build-sim
           west build -b native_sim/native/64 LVGL-ESP32S3/tests/app -d build-tests
-          timeout 60s west build -d build-tests -t run
+          xvfb-run -a timeout 60s west build -d build-tests -t run
           west build -b native_sim/native/64 LVGL-ESP32S3/tests/config_store -d build-config-tests
           timeout 60s west build -d build-config-tests -t run
       - uses: actions/upload-artifact@v4

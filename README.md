@@ -95,7 +95,7 @@ ekranda ve shell geçmişinde görülebilir. Gerçek kimlik bilgilerini Git'e ek
 
 ```sh
 ZEPHYR_TOOLCHAIN_VARIANT=host west build -b native_sim/native/64 LVGL-ESP32S3/tests/app -d build-tests
-SDL_VIDEODRIVER=dummy west build -d build-tests -t run
+xvfb-run -a west build -d build-tests -t run
 ```
 
 Testler parçalı HTTP gövdesi, tampon taşması, bozuk/yanlış tipli JSON,

@@ -8,31 +8,26 @@
     chosen {
         zephyr,display = &panel;
     };
-};
-&pinctrl {
-    panel_spi: panel_spi {
-        group1 {
-            pinmux = <SPIM2_SCLK_GPIO12>, <SPIM2_MOSI_GPIO11>;
-        };
-    };
-};
-&spi2 {
-    status = "okay";
-    pinctrl-0 = <&panel_spi>;
-    pinctrl-names = "default";
-    cs-gpios = <&gpio0 10 GPIO_ACTIVE_LOW>;
+    panel_bus {
+        compatible = "zephyr,mipi-dbi-spi";
+        spi-dev = <&spi2>;
+        dc-gpios = <&gpio0 9 GPIO_ACTIVE_HIGH>;
+        reset-gpios = <&gpio0 8 GPIO_ACTIVE_LOW>;
+        write-only;
+        #address-cells = <1>;
+        #size-cells = <0>;
     panel: st7735r@0 {
         compatible = "sitronix,st7735r";
         reg = <0>;
-        spi-max-frequency = <20000000>;
-        cmd-data-gpios = <&gpio0 9 GPIO_ACTIVE_LOW>;
-        reset-gpios = <&gpio0 8 GPIO_ACTIVE_LOW>;
+        mipi-max-frequency = <20000000>;
         width = <128>;
         height = <128>;
         x-offset = <2>;
         y-offset = <3>;
         madctl = <0xc8>;
         colmod = <0x05>;
+        caset = [00 02 00 81];
+        raset = [00 03 00 82];
         frmctr1 = [01 2c 2d];
         frmctr2 = [01 2c 2d];
         frmctr3 = [01 2c 2d 01 2c 2d];
@@ -46,6 +41,20 @@
         gamctrp1 = [02 1c 07 12 37 32 29 2d 29 25 2b 39 00 01 03 10];
         gamctrn1 = [03 1d 07 06 2e 2c 29 2d 2e 2e 37 3f 00 00 02 10];
     };
+    };
+};
+&pinctrl {
+    panel_spi: panel_spi {
+        group1 {
+            pinmux = <SPIM2_SCLK_GPIO12>, <SPIM2_MOSI_GPIO11>;
+        };
+    };
+};
+&spi2 {
+    status = "okay";
+    pinctrl-0 = <&panel_spi>;
+    pinctrl-names = "default";
+    cs-gpios = <&gpio0 10 GPIO_ACTIVE_LOW>;
 };
 &wifi {
     status = "okay";
