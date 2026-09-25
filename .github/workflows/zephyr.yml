@@ -56,6 +56,12 @@ jobs:
           west build -b esp32s3_devkitc/esp32s3/procpu LVGL-ESP32S3 -d build -- -DAPP_CA_CERT_FILE=/etc/ssl/certs/ISRG_Root_X1.pem
           grep -q '^CONFIG_WIFI_ESP32=y' build/zephyr/.config
           grep -q '^CONFIG_NET_SOCKETS_SOCKOPT_TLS=y' build/zephyr/.config
+      - name: Report firmware memory configuration
+        if: always() && matrix.target == 'esp32s3'
+        run: |
+          if [ -f build/zephyr/.config ]; then
+            grep -E '^CONFIG_(HEAP_MEM_POOL_SIZE|MBEDTLS_HEAP_SIZE|LV_Z_MEM_POOL_SIZE|NET_BUF_RX_COUNT|NET_BUF_TX_COUNT|NEWLIB_LIBC_MIN_REQUIRED_HEAP_SIZE)=' build/zephyr/.config
+          fi
       - name: Build simulator and execute tests
         if: matrix.target == 'native-tests'
         env:
