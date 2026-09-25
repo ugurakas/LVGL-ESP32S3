@@ -1,0 +1,7 @@
+tests:
+  iot.config_store:
+    platform_allow:
+      - native_sim/native/64
+    tags:
+      - settings
+      - iot
