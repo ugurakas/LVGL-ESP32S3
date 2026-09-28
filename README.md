@@ -1,57 +1,36 @@
-# LVGL-ESP32S3 — Zephyr, 128×128
+# LVGL-ESP32S3
 
-Bu dal, eski ESP-IDF/FreeRTOS uygulamasını **Zephyr v4.1.0** ve onun
-LVGL entegrasyonuna taşır. Arayüz **128×128** çözünürlüktedir.
-`main` dalından bağımsızdır.
+ESP32-S3 üzerinde çalışan, bir API'den aldığı sensör değerini 128×128 piksel ekranda gösteren küçük bir panel uygulaması. Ekranda son ölçümün yanında Wi-Fi ve API durumu, ölçümün ne kadar önce alındığı ve yenileme düğmesi bulunuyor.
 
-## Donanım hedefi
+Proje, önceki ESP-IDF/FreeRTOS sürümünden Zephyr v4.1.0'a taşındı. Arayüz için Zephyr'in LVGL entegrasyonu kullanılıyor.
 
-ESP32-S3-DevKitC için derleme hedefi:
-`esp32s3_devkitc/esp32s3/procpu`.
+## Donanım ve bağlantılar
 
+Derleme hedefi **ESP32-S3-DevKitC**. Depodaki örnek ekran yapılandırması, SPI üzerinden bağlanan **128×128 ST7735R** için hazırlanmış.
 
-| Sinyal | ESP32-S3 GPIO |
+| Ekran sinyali | ESP32-S3 GPIO |
 | --- | --- |
 | SCK | 12 |
 | MOSI | 11 |
 | CS | 10 |
 | DC | 9 |
 | RESET | 8 |
-| Besleme/GND | Modül özelliklerine uygun 3.3 V/GND |
+| Besleme / GND | Modüle uygun 3.3 V / GND |
 
-Arka ışığı modülün gerektirdiği devreyle sür. Ekran çeşidine göre başlangıç
-ofsetleri/renk sırası değişebilir; referans overlay `x-offset=2`,
-`y-offset=3` kullanır. Farklı denetleyici veya bağlantı için
-`boards/esp32s3_devkitc_esp32s3_procpu.overlay` dosyasını uyarlamak gerekir.
+Bu bağlantılar bir referans; kullanmadan önce ekranının denetleyicisini ve pinlerini kontrol et. Arka ışık bağlantısını da modülün gerektirdiği şekilde yap.
 
-Dokunmatik denetleyici bilinmediğinden fiziksel dokunmatik sürücüsü
-varsayılmamıştır. Yenileme UART üzerinden de çalışır. Zephyr input/LVGL
-pointer desteğiyle kendi dokunmatik aygıtını ekleyebilirsin.
+Ekran ayarları [board overlay dosyasında](boards/esp32s3_devkitc_esp32s3_procpu.overlay) bulunuyor. Mevcut yapılandırmada `x-offset=2` ve `y-offset=3` kullanılıyor. Görüntü kayıyorsa veya renkler yanlışsa ofsetleri ve renk sırasını ekranına göre düzenle.
 
-## Mimari
-- LVGL'ye yalnızca ana iş parçacığı erişir
-- Wi-Fi/DHCP ve yeniden bağlanma ayrı Zephyr work queue üzerinden yürür.
-- HTTPS sorguları ayrı kernel thread içinde periyodik çalışır; tek istekten sonra bitmez.
-- Parçalı HTTP gövdeleri 4096 baytlık sınırlı tamponda biriktirilir. Taşma,
-  eksik yanıt, HTTP hata kodu ve bozuk JSON yeni ölçüm olarak gösterilmez.
-- JSON şeması korunur: `things[0].device.SensorValue[0].value`.
-- Sensör modeli mutex ile korunur; hata halinde son başarılı değer ve yaşı korunur.
-- Yenileme isteği semaphore ile ağ thread'ine iletilir.
-- Wi-Fi/API ayarları Zephyr settings/NVS'de saklanır; firmware içinde kullanıcı
-  parolası veya API token'ı yoktur.
-- TLS doğrulaması zorunludur: CA veya saat senkronizasyonu yoksa istek yapılmaz.
-- 128×128 arayüzde değer, bağlantı/API durumu, ölçüm yaşı ve yenileme düğmesi bulunur.
+Fiziksel dokunmatik sürücüsü henüz tanımlı değil. Dokunmatik eklemek için Zephyr input ve LVGL pointer desteği kullanılabilir. Ölçümü UART konsolundan da yenileyebilirsin.
 
-Büyük LVGL 8 görsel/font çıktıları `assets/lvgl8/` altında referans olarak
-korunur; Zephyr LVGL uygulamasına derlenmez. Yeni arayüz sabit 480×480
-koordinatlarına bağımlı değildir.
+## Kurulum
 
-## Derle ve yükle
+Önce Zephyr'in bilgisayar tarafındaki bağımlılıklarını, `west` aracını ve ESP32-S3 araç zincirini içeren **Zephyr SDK 0.17.0** sürümünü kur.
 
-Zephyr host bağımlılıkları, west ve ESP32-S3 toolchain'li Zephyr SDK 0.17.0 gerekir.
+Aşağıdaki komutları projeyi tutmak istediğin çalışma klasöründe çalıştır:
 
 ```sh
-git clone --branch zephyr https://github.com/ugurakas/LVGL-ESP32S3.git
+git clone https://github.com/ugurakas/LVGL-ESP32S3.git
 west init -l LVGL-ESP32S3
 west update
 west zephyr-export
@@ -61,19 +40,22 @@ west build -b esp32s3_devkitc/esp32s3/procpu LVGL-ESP32S3 -d build
 west flash -d build
 ```
 
-Bu temel derleme ekranı ve Wi-Fi yapılandırmasını çalıştırır. Gerçek HTTPS
-sunucusunu kullanmak için sunucunun güvenilir **kök CA sertifikasını** yerel
-bir PEM dosyası olarak temin edip derlemeye ver:
+Bu derleme ekranı ve Wi-Fi yapılandırmasını çalıştırmak için yeterli. API'ye HTTPS üzerinden bağlanmak için sunucunun güvenilir kök CA sertifikasını da derlemeye eklemek gerekiyor.
+
+### HTTPS sertifikası
+
+Kök CA sertifikasını PEM dosyası olarak kaydet ve dosyanın tam yolunu vererek yeniden derle:
 
 ```sh
 west build -p always -b esp32s3_devkitc/esp32s3/procpu LVGL-ESP32S3 -d build -- -DAPP_CA_CERT_FILE=/absolute/path/root-ca.pem
 west flash -d build
 ```
 
-CA bir özel anahtar değildir. Uygulama özel anahtar/token dosyası istemez.
-CA verilmezse HTTPS `-EACCES` ile kapalı kalır; doğrulamasız bağlantıya düşmez.
+Burada gereken dosya, sunucuya güvenmek için kullanılan CA sertifikasıdır; özel anahtar değildir. CA verilmezse HTTPS istekleri `-EACCES` hatasıyla durur. Uygulama sertifika doğrulamasını kapatarak devam etmez. Bağlantı için saat senkronizasyonunun da tamamlanması gerekir.
 
-115200-baud UART konsolunda gerçek değerlerinle yapılandır:
+### Wi-Fi ve API ayarları
+
+UART konsolunu **115200 baud** hızında aç. Aşağıdaki yer tutucuları kendi bilgilerinle değiştir:
 
 ```text
 panel set ssid "<ssid>"
@@ -86,22 +68,35 @@ panel reboot
 panel refresh
 ```
 
+Ayarlar Zephyr settings/NVS üzerinden saklanır ve yeniden başlatıldığında korunur. Wi-Fi parolası ve API için gereken bilgiler kaynak koda gömülmez.
 
-NVS ve yerel shell geliştirme amaçlıdır: flash şifrelenmez; konsol girişi
-ekranda ve shell geçmişinde görülebilir. Gerçek kimlik bilgilerini Git'e ekleme.
+Bu ayar yöntemi geliştirme içindir: flash şifrelenmez, konsola yazılan bilgiler ekranda ve komut geçmişinde görünebilir. Gerçek parolaları veya API bilgilerini Git'e ekleme.
 
+## Nasıl çalışıyor?
+
+Uygulama Wi-Fi'ye bağlandıktan sonra API'yi düzenli aralıklarla sorgular. Bağlantı kesilirse yeniden bağlanmayı dener. Yenileme düğmesi veya `panel refresh` komutu da yeni bir sorgu başlatır.
+
+Yanıttan okunan sensör alanı:
+
+```text
+things[0].device.SensorValue[0].value
+```
+
+Parçalar halinde gelen HTTP yanıtları, en fazla 4096 baytlık bir tamponda birleştirilir. Yanıt eksikse, tampona sığmıyorsa, HTTP hatası içeriyorsa veya JSON geçersizse yeni ölçüm olarak gösterilmez. Ekranda son başarılı ölçüm ve ne kadar önce alındığı kalır.
+
+Kod tarafında ekranı ana iş parçacığı günceller; LVGL çağrıları yalnızca buradan yapılır. Wi-Fi işlemleri ayrı bir iş kuyruğunda, HTTPS sorguları ayrı bir iş parçacığında çalışır. Ortak sensör verisi mutex ile korunur, yenileme isteği ise semaphore üzerinden ağ tarafına iletilir.
+
+Önceki LVGL 8 arayüzünün görsel ve font dosyaları [assets/lvgl8](assets/lvgl8/) altında duruyor. Bunlar referans olarak saklanıyor ve mevcut uygulamaya derlenmiyor. Yeni arayüz 128×128 ekran için hazırlanmış durumda.
 
 ## Testler
+
+Simülatör testlerini Linux ortamında şu komutlarla çalıştırabilirsin:
 
 ```sh
 ZEPHYR_TOOLCHAIN_VARIANT=host west build -b native_sim/native/64 LVGL-ESP32S3/tests/app -d build-tests
 xvfb-run -a west build -d build-tests -t run
 ```
 
-Testler parçalı HTTP gövdesi, tampon taşması, bozuk/yanlış tipli JSON,
-hata sonrası son ölçümün korunması, 128×128 yerleşim ve yenileme olayını kapsar.
-GitHub Actions ESP32-S3 firmware'ini ve simülatörü derler, bu testleri çalıştırır.
+Testler; parçalı HTTP yanıtlarını, tampon taşmasını, bozuk veya beklenmeyen tipteki JSON verilerini, hata sonrası son ölçümün korunmasını, 128×128 ekran yerleşimini ve yenileme olayını kapsıyor. GitHub Actions da ESP32-S3 firmware'ini ve simülatörü derleyip testleri çalıştırıyor.
 
-Donanım kabul testi: ekran renk/ofsetleri, UART provisioning, NVS'nin reboot
-sonrası korunması, AP kesintisi sonrası bağlantı, gerçek API/TLS sertifikası,
-yanlış CA reddi, büyük/parçalı yanıt ve son ölçümün hata halinde korunması.
+Gerçek kart üzerinde ekran renkleri ve ofsetleri, dokunmatik, Wi-Fi kesintisinden sonra yeniden bağlanma ve API/TLS bağlantısı ayrıca denenmeli. Ayarların yeniden başlatma sonrası korunması, yanlış CA sertifikasının reddedilmesi ve hatalı yanıt geldiğinde son ölçümün ekranda kalması da donanım kontrolünün bir parçası.
