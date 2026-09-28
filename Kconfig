@@ -1,0 +1,15 @@
+mainmenu "128x128 Zephyr sensor display"
+source "Kconfig.zephyr"
+menu "Sensor application"
+config APP_NETWORK
+    bool "Wi-Fi, settings and HTTPS polling"
+    default n
+config APP_WIFI_RETRY_SECONDS
+    int "Wi-Fi retry interval"
+    range 1 300
+    default 10
+config APP_POLL_SECONDS
+    int "HTTPS polling interval"
+    range 1 3600
+    default 10
+endmenu

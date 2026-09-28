@@ -1,10 +1,7 @@
-build/
-sdkconfig
-sdkconfig.old
-managed_components/
-dependencies.lock
+build*/
+.west/
+.local/
 secrets.h
-.vscode/
-*.o
-*.elf
-*.bin
+*.pem
+*.key
+__pycache__/
